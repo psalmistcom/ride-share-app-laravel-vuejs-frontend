@@ -13,7 +13,7 @@
                     </div>
                 </div>
                 <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
-                    <button type="button"
+                    <button @click.prevent="handleSelectLocation" type="button"
                         class="inline-flex justify-center rounded-md border border-transparent bg-black py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-600 focus:outline-none">
                         Find A Ride
                     </button>
@@ -23,7 +23,31 @@
     </div>
 </template>
 <script setup>
+import { useLocationStore } from '@/stores/location'
+import { useRouter } from 'vue-router';
+
+const location = useLocationStore();
+const router = useRouter()
+
 const handleLocationChanged = (e) => {
     console.log('handleLocationChanged', e)
+    location.$patch({
+        destination: {
+            name: e.name,
+            address: e.formatted_address,
+            geometry: {
+                lat: e.geometry.location.lat(),
+                lng: e.geometry.location.lng(),
+            }
+        },
+    })
+}
+
+const handleSelectLocation = () => {
+    if (location.destination.name !== '') {
+        router.push({
+            name: 'map'
+        })
+    }
 }
 </script>
