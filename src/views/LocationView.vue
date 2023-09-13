@@ -48,6 +48,8 @@ const handleSelectLocation = () => {
         router.push({
             name: 'map'
         })
+    } else {
+        alert('You dey wyn me ni!')
     }
 }
 </script>
