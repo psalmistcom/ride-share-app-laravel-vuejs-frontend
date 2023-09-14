@@ -4,6 +4,12 @@
         <div>
             <div class="overflow-hidden shadow sm:rouded-md max-w-sm mx-auto text-left">
                 <div class="bg-white px-4 py-5 sm:p-6">
+                    <div>
+                        <GMapMap :zoom="11" :center="location.destination.geometry" ref="gMap"
+                            style="width: 100%; height: 256px;">
+                            <GMapMarker :position="location.destination.geometry" />
+                        </GMapMap>
+                    </div>
                     <div class="mt-2">
                         <p class="text-xl"> Goint to <strong> {{ location.destination.name }}</strong></p>
                     </div>
@@ -20,7 +26,53 @@
 <script setup>
 import { useLocationStore } from '@/stores/location'
 import { useRouter } from 'vue-router'
+import { onMounted, ref } from 'vue'
 
 const location = useLocationStore()
 const router = useRouter()
+
+const gMap = ref(null)
+
+onMounted(async () => {
+    // does the user has location set? 
+    if (location.destination.name === '') {
+        router.push({
+            name: 'location'
+        })
+    }
+
+    // lets get the user's current location 
+
+    // navigator.geolocation.getCurrentPosition((success) => {
+    //     console.log(success)
+    // }, (error) => {
+    //     console.error(error)
+    // })
+    await location.updateCurrentLocation()
+
+
+    // draw map on the map 
+    gMap.value.$mapPromise.then((mapObject) => {
+        let currentPoint = new google.maps.LatLng(locationcurrent.geometry),
+            destinationPoint = new google.maps.LatLng(location.destination.geometry),
+            directionsService = new google.maps.DirectionsService,
+            directionDisplay = new google.maps.DirectionsRenderer({
+                map: mapObject
+            })
+
+        directionsService.route({
+            origin: currentPoint,
+            destination: destinationPoint,
+            avoidTolls: false,
+            avoidHighways: false,
+            travelMode: google.maps.travelMode.DRIVING
+        }, (res, status) => {
+            if (status === google.maps.DirectionsStatus.OK) {
+                directionDisplay.setDirections(res)
+            } else {
+                console.error(status)
+            }
+        })
+    })
+})
 </script>
